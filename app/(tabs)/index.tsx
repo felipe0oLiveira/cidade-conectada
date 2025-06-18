@@ -14,6 +14,14 @@ interface BannerInfo {
   image: string;
 }
 
+interface CategoryCardProps {
+  route: string;
+  icon: React.ComponentType<{ size: number; color: string }>;
+  title: string;
+  description: string;
+  color: string;
+}
+
 const banners: BannerInfo[] = [
   {
     id: '1',
@@ -61,7 +69,7 @@ export default function HomeScreen() {
 
   const handleCategoryPress = (route: string) => {
     console.log('Navegando para:', route);
-    router.push(route);
+    router.push(route as any);
   };
 
   const handleRefresh = async () => {
@@ -71,7 +79,7 @@ export default function HomeScreen() {
     setRefreshing(false);
   };
 
-  const CategoryCard = ({ route, icon: Icon, title, description, color }) => (
+  const CategoryCard = ({ route, icon: Icon, title, description, color }: CategoryCardProps) => (
     <TouchableOpacity 
       style={[styles.categoryCard, { backgroundColor: colors.card }]}
       onPress={() => handleCategoryPress(route)}
@@ -151,15 +159,16 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             pagingEnabled
             onMomentumScrollEnd={(event) => {
-              const slideIndex = Math.round(event.nativeEvent.contentOffset.x / width);
+              const slideIndex = Math.round(event.nativeEvent.contentOffset.x / (width - 40));
               setCurrentBanner(slideIndex);
             }}
             style={styles.bannerScrollView}
+            contentContainerStyle={styles.bannerScrollContent}
           >
             {banners.map((banner, index) => (
               <TouchableOpacity 
                 key={banner.id}
-                style={[styles.banner, { backgroundColor: colors.card, width }]}
+                style={[styles.banner, { backgroundColor: colors.card, width: width - 40 }]}
                 activeOpacity={0.9}
               >
                 <LazyImage
@@ -267,13 +276,18 @@ const styles = StyleSheet.create({
   },
   bannerContainer: {
     width: '100%',
+    marginTop: 8,
   },
   bannerScrollView: {
-    height: 200,
+    height: 220,
+  },
+  bannerScrollContent: {
+    paddingHorizontal: 20,
   },
   banner: {
     borderRadius: 16,
     overflow: 'hidden',
+    marginHorizontal: 10,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -285,11 +299,11 @@ const styles = StyleSheet.create({
   },
   bannerImage: {
     width: '100%',
-    aspectRatio: 16 / 9,
-    height: undefined,
+    height: 140,
   },
   bannerContent: {
     padding: 16,
+    paddingTop: 12,
   },
   bannerTitle: {
     fontWeight: '600',
