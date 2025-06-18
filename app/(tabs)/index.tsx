@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, StyleSheet, Platform, useWindowDimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, useWindowDimensions, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Heart, GraduationCap, Users, Briefcase } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
@@ -146,24 +146,38 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.bannerContainer}>
-          <TouchableOpacity 
-            style={[styles.banner, { backgroundColor: colors.card }]}
-            activeOpacity={0.9}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            pagingEnabled
+            onMomentumScrollEnd={(event) => {
+              const slideIndex = Math.round(event.nativeEvent.contentOffset.x / width);
+              setCurrentBanner(slideIndex);
+            }}
+            style={styles.bannerScrollView}
           >
-            <LazyImage
-              source={{ uri: banners[currentBanner].image }}
-              style={styles.bannerImage}
-              resizeMode="cover"
-            />
-            <View style={styles.bannerContent}>
-              <Text style={[styles.bannerTitle, { color: colors.text, fontSize: fontSizes.lg }]}>
-                {banners[currentBanner].title}
-              </Text>
-              <Text style={[styles.bannerDescription, { color: colors.textSecondary, fontSize: fontSizes.sm }]}>
-                {banners[currentBanner].description}
-              </Text>
-            </View>
-          </TouchableOpacity>
+            {banners.map((banner, index) => (
+              <TouchableOpacity 
+                key={banner.id}
+                style={[styles.banner, { backgroundColor: colors.card, width }]}
+                activeOpacity={0.9}
+              >
+                <LazyImage
+                  source={{ uri: banner.image }}
+                  style={styles.bannerImage}
+                  resizeMode="cover"
+                />
+                <View style={styles.bannerContent}>
+                  <Text style={[styles.bannerTitle, { color: colors.text, fontSize: fontSizes.lg }]}>
+                    {banner.title}
+                  </Text>
+                  <Text style={[styles.bannerDescription, { color: colors.textSecondary, fontSize: fontSizes.sm }]}>
+                    {banner.description}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
 
           <View style={styles.bannerIndicators}>
             {banners.map((_, index) => (
@@ -253,6 +267,9 @@ const styles = StyleSheet.create({
   },
   bannerContainer: {
     width: '100%',
+  },
+  bannerScrollView: {
+    height: 200,
   },
   banner: {
     borderRadius: 16,
