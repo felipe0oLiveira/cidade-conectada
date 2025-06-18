@@ -1,8 +1,8 @@
-import { View, Text, TouchableOpacity, StyleSheet, Platform, useWindowDimensions, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, useWindowDimensions, ScrollView, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Heart, GraduationCap, Users, Briefcase } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { LazyImage } from '@/components/LazyImage';
 import { OptimizedScrollView } from '@/components/OptimizedScrollView';
 import { useImageCache } from '@/hooks/useImageCache';
@@ -48,24 +48,37 @@ const headerImage = 'https://www.cedrotech.com/wp-content/uploads/2022/12/voce-s
 // Move allImages outside the component to prevent recreation on every render
 const allImages = [headerImage, ...banners.map(b => b.image)];
 
+const { width } = Dimensions.get('window');
+const margin = 14; // <-- Espaçamento lateral entre os banners (ajustado para 15)
+const bannerWidth = Math.round(width * 0.8); // <-- Diminui a largura do banner
+const bannerHeight = Math.round(width * 0.38);
+
 export default function HomeScreen() {
   const { colors, fontSizes } = useTheme();
   const router = useRouter();
   const [currentBanner, setCurrentBanner] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
-  const { width } = useWindowDimensions();
+  const { width: windowWidth } = useWindowDimensions();
+  const scrollRef = useRef<ScrollView>(null);
 
   // Use the stable allImages array
   const { isImageLoaded, preloadImage } = useImageCache(allImages);
 
-  const rotateBanner = useCallback(() => {
-    setCurrentBanner((current) => (current + 1) % banners.length);
-  }, []);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentBanner((prev) => (prev + 1) % banners.length);
+    }, 3000); // 2 segundos
+    return () => clearInterval(interval);
+  }, [banners.length]);
 
   useEffect(() => {
-    const interval = setInterval(rotateBanner, 5000);
-    return () => clearInterval(interval);
-  }, [rotateBanner]);
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({
+        x: (bannerWidth + margin * 2) * currentBanner,
+        animated: true,
+      });
+    }
+  }, [currentBanner, bannerWidth, margin]);
 
   const handleCategoryPress = (route: string) => {
     console.log('Navegando para:', route);
@@ -153,34 +166,45 @@ export default function HomeScreen() {
           />
         </View>
 
-        <View style={styles.bannerContainer}>
+        <View style={[styles.bannerContainer, { marginTop: 0, marginBottom: 8 }]}>
           <ScrollView
+            ref={scrollRef}
             horizontal
             showsHorizontalScrollIndicator={false}
             pagingEnabled
             onMomentumScrollEnd={(event) => {
-              const slideIndex = Math.round(event.nativeEvent.contentOffset.x / (width - 40));
+              const slideIndex = Math.round(event.nativeEvent.contentOffset.x / (bannerWidth + margin * 2));
               setCurrentBanner(slideIndex);
             }}
             style={styles.bannerScrollView}
-            contentContainerStyle={styles.bannerScrollContent}
+            contentContainerStyle={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: 0 }}
           >
             {banners.map((banner, index) => (
               <TouchableOpacity 
                 key={banner.id}
-                style={[styles.banner, { backgroundColor: colors.card, width: width - 40 }]}
+                style={[
+                  styles.banner,
+                  {
+                    backgroundColor: colors.card,
+                    width: bannerWidth,
+                    height: bannerHeight,
+                    marginHorizontal: margin,
+                    alignSelf: 'center'
+                  },
+                ]}
                 activeOpacity={0.9}
               >
                 <LazyImage
                   source={{ uri: banner.image }}
-                  style={styles.bannerImage}
+                  style={{ width: '100%', height: 55, borderTopLeftRadius: 16, borderTopRightRadius: 16 }}
                   resizeMode="cover"
                 />
-                <View style={styles.bannerContent}>
-                  <Text style={[styles.bannerTitle, { color: colors.text, fontSize: fontSizes.lg }]}>
-                    {banner.title}
-                  </Text>
-                  <Text style={[styles.bannerDescription, { color: colors.textSecondary, fontSize: fontSizes.sm }]}>
+                <View style={[styles.bannerContent, { paddingHorizontal: 20, paddingVertical: 10 }]}> 
+                  <Text style={[styles.bannerTitle, { color: colors.text, fontSize: fontSizes.md, fontWeight: 'bold', textAlign: 'center' }]}> {banner.title} </Text>
+                  <Text
+                    style={[styles.bannerDescription, { color: colors.textSecondary, fontSize: fontSizes.xs, marginTop: 2, textAlign: 'center' }]}
+                    numberOfLines={2}
+                  >
                     {banner.description}
                   </Text>
                 </View>
@@ -276,7 +300,8 @@ const styles = StyleSheet.create({
   },
   bannerContainer: {
     width: '100%',
-    marginTop: 8,
+    marginTop: 0,
+    marginBottom: 8,
   },
   bannerScrollView: {
     height: 220,
@@ -287,27 +312,21 @@ const styles = StyleSheet.create({
   banner: {
     borderRadius: 16,
     overflow: 'hidden',
-    marginHorizontal: 10,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  bannerImage: {
-    width: '100%',
-    height: 140,
+    backgroundColor: '#fff',
+    justifyContent: 'flex-start',
+    marginBottom: 8,
+    alignSelf: 'center',
   },
   bannerContent: {
-    padding: 16,
-    paddingTop: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
   },
   bannerTitle: {
-    fontWeight: '600',
-    marginBottom: 4,
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
   bannerDescription: {
     opacity: 0.8,
@@ -316,7 +335,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 4,
     gap: 8,
   },
   indicator: {
