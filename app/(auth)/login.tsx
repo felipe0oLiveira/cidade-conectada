@@ -80,7 +80,7 @@ export default function LoginScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
         <Image
-          source={{ uri: 'https://www.cedrotech.com/wp-content/uploads/2022/12/voce-sabe-o-que-e-uma-cidade-inteligente19420.jpg' }}
+          source={require('@/assets/images/city_background.jpg')}
           style={styles.headerImage}
         />
         <View style={styles.overlay} />
