@@ -49,7 +49,7 @@ const headerImage = 'https://www.cedrotech.com/wp-content/uploads/2022/12/voce-s
 const allImages = [headerImage, ...banners.map(b => b.image)];
 
 const { width } = Dimensions.get('window');
-const margin = 14; // <-- Espaçamento lateral entre os banners (ajustado para 15)
+const margin = 20; // <-- Espaçamento lateral entre os banners (ajustado para 14)
 const bannerWidth = Math.round(width * 0.8); // <-- Diminui a largura do banner
 const bannerHeight = Math.round(width * 0.38);
 
