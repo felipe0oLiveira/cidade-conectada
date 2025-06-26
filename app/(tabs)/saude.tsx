@@ -13,7 +13,7 @@ export default function SaudeScreen() {
 
   const handleCardPress = (route: string) => {
     console.log('Navegando para:', route);
-    router.push(route);
+    router.push(route as any);
   };
 
   return (
