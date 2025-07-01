@@ -1,106 +1,211 @@
-// Importação dos componentes necessários do React Native e ícones
-import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
-// Importação dos ícones que serão usados nos cards
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Image, TextInput, Button, FlatList, Modal, ActivityIndicator } from 'react-native';
 import { Trash2, Lightbulb, Droplets, Truck } from 'lucide-react-native';
-// Importação do hook de tema personalizado
+import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/context/ThemeContext';
+import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../context/AuthContext';
+
+const tiposProblema = [
+  { label: 'Coleta de Lixo', value: 'Lixo acumulado', icon: <Trash2 size={24} color="#FF6347" /> },
+  { label: 'Iluminação com Defeito', value: 'Iluminação pública', icon: <Lightbulb size={24} color="#FFD700" /> },
+  { label: 'Desobstrução de Bueiros', value: 'Desobstrução de bueiros', icon: <Droplets size={24} color="#4169E1" /> },
+  { label: 'Retirada de Entulhos', value: 'Retirada de entulhos', icon: <Truck size={24} color="#32CD32" /> },
+];
 
 export default function AlertasScreen() {
-  // Obtém as cores e tamanhos de fonte do tema atual
   const { colors, fontSizes } = useTheme();
+  const { session } = useAuth();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [tipo, setTipo] = useState(tiposProblema[0].value);
+  const [descricao, setDescricao] = useState('');
+  const [localizacao, setLocalizacao] = useState('');
+  const [foto, setFoto] = useState<null | { uri: string; type?: string; name?: string }>(null);
+  const [enviando, setEnviando] = useState(false);
+  const [solicitacoes, setSolicitacoes] = useState<any[]>([]);
+  const [carregando, setCarregando] = useState(true);
 
-  return (
-    // Container principal com cor de fundo do tema
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Cabeçalho fixo da tela com título e subtítulo */}
-      <View style={[styles.header, { backgroundColor: colors.card }]}>
-        <Text style={[styles.headerTitle, { color: colors.text, fontSize: fontSizes['2xl'] }]}>
+  useEffect(() => {
+    if (session?.user) fetchSolicitacoes();
+  }, [session]);
+
+  async function fetchSolicitacoes() {
+    if (!session?.user) return;
+    setCarregando(true);
+    const { data, error } = await supabase
+      .from('servicos_urbanos')
+      .select('*')
+      .eq('usuario_id', session.user.id)
+      .order('data_criacao', { ascending: false });
+    if (!error && data) setSolicitacoes(data);
+    setCarregando(false);
+  }
+
+  async function pickImage() {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.7,
+    });
+    if (!result.canceled) {
+      setFoto(result.assets[0]);
+    }
+  }
+
+  async function takePhoto() {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      alert('É necessário permitir o acesso à câmera para tirar uma foto.');
+      return;
+    }
+    let result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.7,
+    });
+    if (!result.canceled) {
+      setFoto(result.assets[0]);
+    }
+  }
+
+  async function handleSubmit() {
+    if (!descricao) return alert('Descreva o problema.');
+    if (!session?.user) return alert('Usuário não autenticado.');
+    setEnviando(true);
+    let foto_url = null;
+    if (foto) {
+      const fileExt = foto.uri.split('.').pop();
+      const fileName = `${session.user.id}_${Date.now()}.${fileExt}`;
+      // Sempre buscar como blob
+      const response = await fetch(foto.uri);
+      const blob = await response.blob();
+      const { data, error } = await supabase.storage
+        .from('servicos-urbanos')
+        .upload(fileName, blob);
+      if (!error) {
+        const { data: publicUrl } = supabase.storage
+          .from('servicos-urbanos')
+          .getPublicUrl(fileName);
+        foto_url = publicUrl.publicUrl;
+      }
+    }
+    const { error } = await supabase.from('servicos_urbanos').insert([
+      {
+        usuario_id: session.user.id,
+        tipo,
+        descricao,
+        localizacao,
+        foto_url,
+      },
+    ]);
+    setEnviando(false);
+    if (!error) {
+      setDescricao('');
+      setLocalizacao('');
+      setFoto(null);
+      setModalVisible(false);
+      fetchSolicitacoes();
+      alert('Solicitação enviada!');
+    } else {
+      alert('Erro ao enviar solicitação.');
+    }
+  }
+
+  function cardIconBg(idx: number) {
+    return [
+      { backgroundColor: '#FF634740' },
+      { backgroundColor: '#FFD70040' },
+      { backgroundColor: '#4169E140' },
+      { backgroundColor: '#32CD3240' },
+    ][idx] || { backgroundColor: '#ccc' };
+  }
+
+  // Cabeçalho, banner e cards de serviços urbanos
+  const header = (
+    <>
+      <View style={[styles.header, { backgroundColor: colors.card }]}>  
+        <Text style={[styles.headerTitle, { color: colors.text, fontSize: fontSizes['2xl'] }]}>  
           Serviços Urbanos
         </Text>
-        <Text style={[styles.headerSubtitle, { color: colors.textSecondary, fontSize: fontSizes.md }]}>
+        <Text style={[styles.headerSubtitle, { color: colors.textSecondary, fontSize: fontSizes.md }]}>  
           Solicite serviços para sua região
         </Text>
       </View>
+      <Image
+        source={{ uri: 'https://images.pexels.com/photos/1881069/pexels-photo-1881069.jpeg' }}
+        style={styles.bannerImage}
+      />
+      <View style={styles.content}>
+        {tiposProblema.map((tp, idx) => (
+          <TouchableOpacity
+            key={tp.value}
+            style={[styles.card, { backgroundColor: colors.card }]}
+            onPress={() => { setTipo(tp.value); setModalVisible(true); }}
+          >
+            <View style={[styles.iconContainer, cardIconBg(idx)]}>{tp.icon}</View>
+            <View style={styles.cardText}>
+              <Text style={[styles.cardTitle, { color: colors.text, fontSize: fontSizes.md }]}>{tp.label}</Text>
+              <Text style={[styles.cardDescription, { color: colors.textSecondary, fontSize: fontSizes.sm }]}>Solicitar {tp.label.toLowerCase()}</Text>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </View>
+      <Text style={[styles.headerTitle, { color: colors.text, fontSize: fontSizes.xl, marginTop: 24 }]}>Minhas Solicitações</Text>
+    </>
+  );
 
-      {/* ScrollView para permitir rolagem do conteúdo */}
-      <ScrollView 
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>  
+      <FlatList
+        ListHeaderComponent={header}
+        data={solicitacoes}
+        keyExtractor={item => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>{item.tipo}</Text>
+            <Text>{item.descricao}</Text>
+            {item.foto_url && <Image source={{ uri: item.foto_url }} style={styles.cardFoto} />}
+            <Text>Status: {item.status}</Text>
+            <Text style={styles.cardData}>{new Date(item.data_criacao).toLocaleString()}</Text>
+          </View>
+        )}
+        ListEmptyComponent={carregando ? <ActivityIndicator /> : <Text style={{ textAlign: 'center', margin: 20 }}>Nenhuma solicitação encontrada.</Text>}
+        contentContainerStyle={{ paddingBottom: 40 }}
+      />
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setModalVisible(false)}
       >
-        {/* Imagem de banner mostrando uma cidade à noite */}
-        <Image
-          source={{ uri: 'https://images.pexels.com/photos/1881069/pexels-photo-1881069.jpeg' }}
-          style={styles.bannerImage}
-        />
-
-        {/* Área de conteúdo com os cards de serviços */}
-        <View style={styles.content}>
-          {/* Card para Coleta de Lixo */}
-          <TouchableOpacity style={[styles.card, { backgroundColor: colors.card }]}>
-            {/* Container do ícone com fundo vermelho transparente */}
-            <View style={[styles.iconContainer, { backgroundColor: '#FF634740' }]}>
-              <Trash2 size={24} color="#FF6347" />
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>  
+            <Text style={[styles.headerTitle, { color: colors.text, fontSize: fontSizes.lg }]}>Nova Solicitação</Text>
+            <Text style={{ marginBottom: 8 }}>Tipo: <Text style={{ fontWeight: 'bold' }}>{tipo}</Text></Text>
+            <Text>Descrição:</Text>
+            <TextInput
+              style={styles.input}
+              value={descricao}
+              onChangeText={setDescricao}
+              placeholder="Descreva o problema"
+              multiline
+            />
+            <Text>Localização (opcional):</Text>
+            <TextInput
+              style={styles.input}
+              value={localizacao}
+              onChangeText={setLocalizacao}
+              placeholder="Endereço ou ponto de referência"
+            />
+            <Button title={foto ? 'Foto selecionada' : 'Adicionar foto'} onPress={pickImage} />
+            {foto && <Image source={{ uri: foto.uri }} style={styles.foto} />}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 16 }}>
+              <Button title="Cancelar" color="#888" onPress={() => setModalVisible(false)} />
+              <Button title={enviando ? 'Enviando...' : 'Enviar'} onPress={handleSubmit} disabled={enviando} />
             </View>
-            <View style={styles.cardText}>
-              <Text style={[styles.cardTitle, { color: colors.text, fontSize: fontSizes.md }]}>
-                Coleta de Lixo
-              </Text>
-              <Text style={[styles.cardDescription, { color: colors.textSecondary, fontSize: fontSizes.sm }]}>
-                Solicitar coleta de resíduos
-              </Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* Card para Iluminação com Defeito */}
-          <TouchableOpacity style={[styles.card, { backgroundColor: colors.card }]}>
-            {/* Container do ícone com fundo amarelo transparente */}
-            <View style={[styles.iconContainer, { backgroundColor: '#FFD70040' }]}>
-              <Lightbulb size={24} color="#FFD700" />
-            </View>
-            <View style={styles.cardText}>
-              <Text style={[styles.cardTitle, { color: colors.text, fontSize: fontSizes.md }]}>
-                Iluminação com Defeito
-              </Text>
-              <Text style={[styles.cardDescription, { color: colors.textSecondary, fontSize: fontSizes.sm }]}>
-                Reportar problemas de iluminação
-              </Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* Card para Desobstrução de Bueiros */}
-          <TouchableOpacity style={[styles.card, { backgroundColor: colors.card }]}>
-            {/* Container do ícone com fundo azul transparente */}
-            <View style={[styles.iconContainer, { backgroundColor: '#4169E140' }]}>
-              <Droplets size={24} color="#4169E1" />
-            </View>
-            <View style={styles.cardText}>
-              <Text style={[styles.cardTitle, { color: colors.text, fontSize: fontSizes.md }]}>
-                Desobstrução de Bueiros
-              </Text>
-              <Text style={[styles.cardDescription, { color: colors.textSecondary, fontSize: fontSizes.sm }]}>
-                Solicitar limpeza de bueiros
-              </Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* Card para Retirada de Entulhos */}
-          <TouchableOpacity style={[styles.card, { backgroundColor: colors.card }]}>
-            {/* Container do ícone com fundo verde transparente */}
-            <View style={[styles.iconContainer, { backgroundColor: '#32CD3240' }]}>
-              <Truck size={24} color="#32CD32" />
-            </View>
-            <View style={styles.cardText}>
-              <Text style={[styles.cardTitle, { color: colors.text, fontSize: fontSizes.md }]}>
-                Retirada de Entulhos
-              </Text>
-              <Text style={[styles.cardDescription, { color: colors.textSecondary, fontSize: fontSizes.sm }]}>
-                Agendar retirada de entulhos
-              </Text>
-            </View>
-          </TouchableOpacity>
+          </View>
         </View>
-      </ScrollView>
+      </Modal>
     </View>
   );
 }
@@ -125,14 +230,6 @@ const styles = StyleSheet.create({
   // Subtítulo com opacidade reduzida
   headerSubtitle: {
     opacity: 0.8,
-  },
-  // Configuração do ScrollView
-  scrollView: {
-    flex: 1,
-  },
-  // Configuração do conteúdo do ScrollView
-  scrollContent: {
-    flexGrow: 1,
   },
   // Imagem de banner com altura fixa e cobertura total
   bannerImage: {
@@ -182,5 +279,47 @@ const styles = StyleSheet.create({
   // Descrição do card com opacidade reduzida
   cardDescription: {
     opacity: 0.8,
+  },
+  // novos estilos para formulário/modal/listagem
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 6,
+    padding: 8,
+    marginBottom: 12,
+    backgroundColor: '#fff',
+  },
+  foto: {
+    width: 100,
+    height: 100,
+    marginVertical: 8,
+    borderRadius: 8,
+  },
+  cardFoto: {
+    width: 80,
+    height: 80,
+    marginVertical: 6,
+    borderRadius: 6,
+  },
+  cardData: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 4,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '90%',
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
   },
 });
