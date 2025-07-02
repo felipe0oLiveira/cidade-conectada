@@ -197,8 +197,16 @@ export default function AlertasScreen() {
               onChangeText={setLocalizacao}
               placeholder="Endereço ou ponto de referência"
             />
-            <Button title={foto ? 'Foto selecionada' : 'Adicionar foto'} onPress={pickImage} />
-            {foto && <Image source={{ uri: foto.uri }} style={styles.foto} />}
+            <View style={{ flexDirection: 'column', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <Button title="Adicionar foto" onPress={pickImage} />
+              <Button title="Tirar foto" onPress={takePhoto} />
+            </View>
+            {foto && (
+              <View style={{ alignItems: 'center', marginBottom: 8 }}>
+                <Image source={{ uri: foto.uri }} style={styles.foto} />
+                <Button title="Remover foto" color="#d9534f" onPress={() => setFoto(null)} />
+              </View>
+            )}
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 16 }}>
               <Button title="Cancelar" color="#888" onPress={() => setModalVisible(false)} />
               <Button title={enviando ? 'Enviando...' : 'Enviar'} onPress={handleSubmit} disabled={enviando} />
