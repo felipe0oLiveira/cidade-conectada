@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, TextInput, Button, FlatList, Modal, ActivityIndicator } from 'react-native';
 import { Trash2, Lightbulb, Droplets, Truck } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 import { useTheme } from '@/context/ThemeContext';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 
+// Lista de tipos de problemas urbanos disponíveis para solicitação
 const tiposProblema = [
   { label: 'Coleta de Lixo', value: 'Lixo acumulado', icon: <Trash2 size={24} color="#FF6347" /> },
   { label: 'Iluminação com Defeito', value: 'Iluminação pública', icon: <Lightbulb size={24} color="#FFD700" /> },
@@ -13,9 +15,13 @@ const tiposProblema = [
   { label: 'Retirada de Entulhos', value: 'Retirada de entulhos', icon: <Truck size={24} color="#32CD32" /> },
 ];
 
+// Componente principal da tela de Alertas
 export default function AlertasScreen() {
+  // Hooks de tema e autenticação
   const { colors, fontSizes } = useTheme();
   const { session } = useAuth();
+
+  // Estados para controle dos formulários e dados
   const [modalVisible, setModalVisible] = useState(false);
   const [tipo, setTipo] = useState(tiposProblema[0].value);
   const [descricao, setDescricao] = useState('');
@@ -25,10 +31,12 @@ export default function AlertasScreen() {
   const [solicitacoes, setSolicitacoes] = useState<any[]>([]);
   const [carregando, setCarregando] = useState(true);
 
+  // Carrega as solicitações do usuário ao abrir a tela ou mudar de usuário
   useEffect(() => {
     if (session?.user) fetchSolicitacoes();
   }, [session]);
 
+  // Busca as solicitações do usuário no Supabase
   async function fetchSolicitacoes() {
     if (!session?.user) return;
     setCarregando(true);
@@ -41,6 +49,7 @@ export default function AlertasScreen() {
     setCarregando(false);
   }
 
+  // Seleciona uma imagem da galeria, redimensiona e comprime antes de salvar
   async function pickImage() {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -48,10 +57,17 @@ export default function AlertasScreen() {
       quality: 0.7,
     });
     if (!result.canceled) {
-      setFoto(result.assets[0]);
+      // Redimensiona e comprime a imagem antes de salvar
+      const manipResult = await ImageManipulator.manipulateAsync(
+        result.assets[0].uri,
+        [{ resize: { width: 800 } }],
+        { compress: 0.3, format: ImageManipulator.SaveFormat.JPEG }
+      );
+      setFoto(manipResult);
     }
   }
 
+  // Tira uma foto com a câmera, redimensiona e comprime antes de salvar
   async function takePhoto() {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
@@ -64,10 +80,17 @@ export default function AlertasScreen() {
       quality: 0.7,
     });
     if (!result.canceled) {
-      setFoto(result.assets[0]);
+      // Redimensiona e comprime a imagem antes de salvar
+      const manipResult = await ImageManipulator.manipulateAsync(
+        result.assets[0].uri,
+        [{ resize: { width: 800 } }],
+        { compress: 0.3, format: ImageManipulator.SaveFormat.JPEG }
+      );
+      setFoto(manipResult);
     }
   }
 
+  // Envia a solicitação para o Supabase, incluindo upload da foto se houver
   async function handleSubmit() {
     if (!descricao) return alert('Descreva o problema.');
     if (!session?.user) return alert('Usuário não autenticado.');
@@ -111,6 +134,7 @@ export default function AlertasScreen() {
     }
   }
 
+  // Retorna o estilo de fundo do ícone do card de acordo com o tipo
   function cardIconBg(idx: number) {
     return [
       { backgroundColor: '#FF634740' },
@@ -124,17 +148,19 @@ export default function AlertasScreen() {
   const header = (
     <>
       <View style={[styles.header, { backgroundColor: colors.card }]}>  
-        <Text style={[styles.headerTitle, { color: colors.text, fontSize: fontSizes['2xl'] }]}>  
+        <Text style={[styles.headerTitle, { color: colors.text, fontSize: fontSizes['2xl'], textAlign: 'center', alignSelf: 'center' }]}>  
           Serviços Urbanos
         </Text>
-        <Text style={[styles.headerSubtitle, { color: colors.textSecondary, fontSize: fontSizes.md }]}>  
+        <Text style={[styles.headerSubtitle, { color: colors.textSecondary, fontSize: fontSizes.md, textAlign: 'center', alignSelf: 'center' }]}>  
           Solicite serviços para sua região
         </Text>
       </View>
+      {/* Banner ilustrativo */}
       <Image
         source={{ uri: 'https://images.pexels.com/photos/1881069/pexels-photo-1881069.jpeg' }}
         style={styles.bannerImage}
       />
+      {/* Cards de tipos de problemas urbanos */}
       <View style={styles.content}>
         {tiposProblema.map((tp, idx) => (
           <TouchableOpacity
@@ -150,12 +176,15 @@ export default function AlertasScreen() {
           </TouchableOpacity>
         ))}
       </View>
-      <Text style={[styles.headerTitle, { color: colors.text, fontSize: fontSizes.xl, marginTop: 24 }]}>Minhas Solicitações</Text>
+      {/* Título das solicitações do usuário */}
+      <Text style={[styles.headerTitle, { color: colors.text, fontSize: fontSizes.xl, marginTop: 24, textAlign: 'center', alignSelf: 'center' }]}>Minhas Solicitações</Text>
     </>
   );
 
   return (
+    // Container principal da tela
     <View style={[styles.container, { backgroundColor: colors.background }]}>  
+      {/* Lista de solicitações do usuário */}
       <FlatList
         ListHeaderComponent={header}
         data={solicitacoes}
@@ -172,6 +201,7 @@ export default function AlertasScreen() {
         ListEmptyComponent={carregando ? <ActivityIndicator /> : <Text style={{ textAlign: 'center', margin: 20 }}>Nenhuma solicitação encontrada.</Text>}
         contentContainerStyle={{ paddingBottom: 40 }}
       />
+      {/* Modal para nova solicitação */}
       <Modal
         visible={modalVisible}
         animationType="slide"
@@ -197,20 +227,15 @@ export default function AlertasScreen() {
               onChangeText={setLocalizacao}
               placeholder="Endereço ou ponto de referência"
             />
+            {/* Botões para selecionar ou tirar foto */}
             <View style={{ flexDirection: 'column', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <Button title="Adicionar foto" onPress={pickImage} />
-              <Button title="Tirar foto" onPress={takePhoto} />
+              <Button title="Selecionar Foto" onPress={pickImage} />
+              <Button title="Tirar Foto" onPress={takePhoto} />
+              {foto && <Image source={{ uri: foto.uri }} style={{ width: 120, height: 120, marginTop: 8, borderRadius: 8 }} />}
             </View>
-            {foto && (
-              <View style={{ alignItems: 'center', marginBottom: 8 }}>
-                <Image source={{ uri: foto.uri }} style={styles.foto} />
-                <Button title="Remover foto" color="#d9534f" onPress={() => setFoto(null)} />
-              </View>
-            )}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 16 }}>
-              <Button title="Cancelar" color="#888" onPress={() => setModalVisible(false)} />
-              <Button title={enviando ? 'Enviando...' : 'Enviar'} onPress={handleSubmit} disabled={enviando} />
-            </View>
+            {/* Botão de envio */}
+            <Button title={enviando ? 'Enviando...' : 'Enviar Solicitação'} onPress={handleSubmit} disabled={enviando} />
+            <Button title="Cancelar" onPress={() => setModalVisible(false)} color="#888" />
           </View>
         </View>
       </Modal>
