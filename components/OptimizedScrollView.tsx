@@ -30,13 +30,9 @@ export function OptimizedScrollView({
   return (
     <ScrollView
       {...props}
+      removeClippedSubviews={true}
       showsVerticalScrollIndicator={false}
       showsHorizontalScrollIndicator={false}
-      removeClippedSubviews={true}
-      maxToRenderPerBatch={10}
-      windowSize={10}
-      initialNumToRender={5}
-      getItemLayout={undefined}
       refreshControl={
         onRefresh ? (
           <RefreshControl
