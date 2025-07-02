@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "bolt-expo-nativewind",
-    "slug": "bolt-expo-nativewind",
+    "name": "cidade-conecta",
+    "slug": "cidade-conecta",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -31,7 +31,7 @@
       "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqcXpsZGJraWNlcGJuYXZ4am9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5OTU5ODcsImV4cCI6MjA2MzU3MTk4N30.XFittEDe2G8l7SRmFef5M9iXRZ5i0q-_WrmXeYf8eXI"
     },
     "android": {
-      "package": "com.jfosilvadev.boltexponativewind"
+      "package": "com.jfosilvadev.cidadeconecta"
     }
   }
 }
