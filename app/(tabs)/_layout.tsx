@@ -48,6 +48,9 @@ export default function TabLayout() {
           backgroundColor: colors.card,
           height: 60,
           paddingBottom: 8,
+          borderTopWidth: 0, // Remove a linha superior
+          elevation: 0, // Remove sombra no Android
+          shadowOpacity: 0, // Remove sombra no iOS
         },
         // Cores dos ícones ativos e inativos
         tabBarActiveTintColor: colors.primary,
