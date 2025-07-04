@@ -157,7 +157,7 @@ export default function AlertasScreen() {
       </View>
       {/* Banner ilustrativo */}
       <Image
-        source={{ uri: 'https://images.pexels.com/photos/1881069/pexels-photo-1881069.jpeg' }}
+        source={require('../../assets/images/banner_servicos_urbanos.png')}
         style={styles.bannerImage}
       />
       {/* Cards de tipos de problemas urbanos */}
