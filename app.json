@@ -25,13 +25,23 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "eecdac0c-9ea9-49f8-88cb-718693f07e2b"
+        "projectId": "ec27fb81-873c-4e99-acff-ad775224d6a4"
       },
       "supabaseUrl": "https://cjqzldbkicepbnavxjop.supabase.co",
       "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqcXpsZGJraWNlcGJuYXZ4am9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5OTU5ODcsImV4cCI6MjA2MzU3MTk4N30.XFittEDe2G8l7SRmFef5M9iXRZ5i0q-_WrmXeYf8eXI"
     },
     "android": {
       "package": "com.jfosilvadev.cidadeconecta"
+    },
+    "owner": "jfosilvadev"
+  },
+  "cli": {
+    "appVersionSource": "appVersion"
+  },
+  "development": {
+    "distribution": "internal",
+    "android": {
+      "buildType": "apk"
     }
   }
 }
