@@ -2,8 +2,11 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Platform, ActivityIndicator } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { User, Mail, Lock, ArrowRight } from 'lucide-react-native';
+import { MapPin } from 'lucide-react-native';
+import * as Location from 'expo-location';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
+import { useEffect } from 'react';
 
 const isValidEmail = (email: string) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -20,6 +23,43 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [cidade, setCidade] = useState('');
+  const [gettingLocation, setGettingLocation] = useState(false);
+  const [locationError, setLocationError] = useState('');
+  const [geoDebug, setGeoDebug] = useState<any>(null);
+
+  const fetchCity = async () => {
+    setGettingLocation(true);
+    setLocationError('');
+    setGeoDebug(null);
+    try {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setLocationError('Permissão de localização negada.');
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+      let [place] = await Location.reverseGeocodeAsync(location.coords);
+      setGeoDebug({ coords: location.coords, place }); // Salva para debug
+      let cidadeDetectada = place?.city || place?.subregion || place?.region || place?.district;
+      if (cidadeDetectada) {
+        setCidade(cidadeDetectada);
+      } else {
+        setLocationError('Cidade não encontrada. Digite manualmente ou tente novamente.');
+      }
+    } catch (e) {
+      setLocationError('Erro ao detectar localização. Tente novamente.');
+    } finally {
+      setGettingLocation(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCity();
+  }, []);
 
   const handleRegister = async () => {
     // Reset states
@@ -47,10 +87,14 @@ export default function RegisterScreen() {
       setError('A senha deve ter pelo menos 6 caracteres');
       return;
     }
+    if (!cidade.trim()) {
+      setError('Por favor, insira sua cidade');
+      return;
+    }
 
     try {
       setLoading(true);
-      await signUp(email, password, name);
+      await signUp(email, password, name, cidade);
       setSuccess(true);
       // Wait a moment before redirecting to ensure the user sees the success message
       setTimeout(() => {
@@ -118,6 +162,35 @@ export default function RegisterScreen() {
             editable={!loading}
           />
         </View>
+
+        {/* Campo Cidade */}
+        <View style={styles.inputContainer}>
+          <MapPin size={20} color="#666666" />
+          <TextInput
+            style={[styles.input, { color: '#000000', fontSize: fontSizes.md }]}
+            placeholder="Cidade"
+            placeholderTextColor="#666666"
+            value={cidade}
+            onChangeText={(text) => {
+              setCidade(text);
+              setLocationError('');
+            }}
+            autoCapitalize="words"
+            autoComplete="address-line2"
+            editable={!loading && !gettingLocation}
+          />
+          {gettingLocation && (
+            <ActivityIndicator size="small" color={colors.primary} style={{ marginLeft: 8 }} />
+          )}
+        </View>
+      {locationError ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+          <Text style={{ color: colors.error, fontSize: 12 }}>{locationError}</Text>
+          <TouchableOpacity onPress={fetchCity} style={{ marginLeft: 8 }}>
+            <Text style={{ color: colors.primary, fontSize: 12 }}>Tentar novamente</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
 
         <View style={styles.inputContainer}>
           <Mail size={20} color="#666666" />
