@@ -123,6 +123,12 @@ export default function TabLayout() {
           href: null,
         }}
       />
+      <Tabs.Screen
+        name="sugestoes"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }
