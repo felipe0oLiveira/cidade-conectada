@@ -1,6 +1,6 @@
-import { View, Text, TouchableOpacity, StyleSheet, Platform, useWindowDimensions, ScrollView, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, useWindowDimensions, ScrollView, Dimensions, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Heart, GraduationCap, Users, Briefcase } from 'lucide-react-native';
+import { Heart, GraduationCap, Users, Briefcase, Mail } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { LazyImage } from '@/components/LazyImage';
@@ -109,61 +109,63 @@ export default function HomeScreen() {
   );
 
   return (
-    <OptimizedScrollView 
-      style={[styles.container, { backgroundColor: colors.background }]}
-      onRefresh={handleRefresh}
-      refreshing={refreshing}
-    >
-      <View style={styles.header}>
-        <LazyImage
-          source={{ uri: headerImage }}
-          style={styles.headerImage}
-          resizeMode="cover"
-        />
-        <View style={styles.headerOverlay}>
-          <Text style={[styles.headerTitle, { fontSize: fontSizes['2xl'] }]}>
-            Cidade Conectada
-          </Text>
-          <Text style={[styles.headerSubtitle, { fontSize: fontSizes.md }]}>
-            Todos os serviços em um só lugar
-          </Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+      <OptimizedScrollView 
+        style={[styles.container, { backgroundColor: colors.background, paddingHorizontal: 16 }]}
+        onRefresh={handleRefresh}
+        refreshing={refreshing}
+      >
+        <View style={styles.header}>
+          <LazyImage
+            source={{ uri: headerImage }}
+            style={styles.headerImage}
+            resizeMode="cover"
+          />
+          <View style={styles.headerOverlay}>
+            <Text style={[styles.headerTitle, { fontSize: fontSizes['2xl'] }]}>Cidade Conectada</Text>
+            <Text style={[styles.headerSubtitle, { fontSize: fontSizes.md }]}>Todos os serviços em um só lugar</Text>
+          </View>
         </View>
-      </View>
 
-      <View style={[styles.content, { maxWidth: 1200, alignSelf: 'center', width: '100%' }]}>
-        <Text style={[styles.sectionTitle, { color: colors.text, fontSize: fontSizes.xl }]}>
-          Categorias
-        </Text>
-        
-        <View style={styles.grid}>
-          <CategoryCard
-            route="/saude"
-            icon={Heart}
-            title="Saúde"
-            description="Vacinação, consultas e mais"
-            color="#FF4B4B"
-          />
-          <CategoryCard
-            route="/educacao"
-            icon={GraduationCap}
-            title="Educação"
-            description="Matrículas e calendário escolar"
-            color="#FF9800"
-          />
-          <CategoryCard
-            route="/social"
-            icon={Users}
-            title="Social"
-            description="Programas e benefícios sociais"
-            color="#2196F3"
-          />
-          <CategoryCard
-            route="/empregos"
-            icon={Briefcase}
-            title="Empregos"
-            description="Oportunidades e orientação"
-            color="#4CAF50"
-          />
+        <View style={[styles.content, { maxWidth: 600, alignSelf: 'center', width: '100%' }]}> 
+          <Text style={[styles.sectionTitle, { color: colors.text, fontSize: fontSizes.xl }]}>Categorias</Text>
+          <View style={styles.grid}>
+            <CategoryCard
+              route="/saude"
+              icon={Heart}
+              title="Saúde"
+              description="Vacinação, consultas e mais"
+              color="#FF4B4B"
+            />
+            <CategoryCard
+              route="/educacao"
+              icon={GraduationCap}
+              title="Educação"
+              description="Matrículas e calendário escolar"
+              color="#FF9800"
+            />
+            <CategoryCard
+              route="/social"
+              icon={Users}
+              title="Social"
+              description="Programas e benefícios sociais"
+              color="#2196F3"
+            />
+            <CategoryCard
+              route="/empregos"
+              icon={Briefcase}
+              title="Empregos"
+              description="Oportunidades e orientação"
+              color="#4CAF50"
+            />
+            <CategoryCard
+              route="/sugestoes"
+              icon={Mail}
+              title="Sugestões"
+              description="Participe e melhore a cidade"
+              color="#9C27B0"
+            />
+          </View>
         </View>
 
         <View style={[styles.bannerContainer, { marginTop: 0, marginBottom: 8 }]}>
@@ -227,8 +229,8 @@ export default function HomeScreen() {
             ))}
           </View>
         </View>
-      </View>
-    </OptimizedScrollView>
+      </OptimizedScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -272,31 +274,33 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+    marginTop: 16,
     marginBottom: 24,
   },
   categoryCard: {
-    borderRadius: 16,
-    padding: 20,
+    flexBasis: '48%',
+    width: '48%',
     alignItems: 'center',
-    marginBottom: 16,
-    width: '47%',
+    padding: 20,
+    borderRadius: 16,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
     shadowRadius: 4,
     elevation: 2,
+    marginBottom: 16,
   },
   categoryTitle: {
-    fontWeight: '600',
+    fontWeight: 'bold',
     marginTop: 12,
     marginBottom: 4,
     textAlign: 'center',
+    fontSize: 18,
   },
   categoryDescription: {
     textAlign: 'center',
+    fontSize: 14,
+    color: '#666',
   },
   bannerContainer: {
     width: '100%',
