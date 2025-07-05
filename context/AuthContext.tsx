@@ -9,7 +9,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, name: string) => Promise<void>;
+  signUp: (email: string, password: string, name: string, cidade: string) => Promise<void>;
   signOut: () => Promise<void>;
   resendConfirmationEmail: (email: string) => Promise<void>;
 }
@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Função de cadastro
-  const signUp = async (email: string, password: string, name: string) => {
+  const signUp = async (email: string, password: string, name: string, cidade: string) => {
     try {
       // Limpa a sessão antes do registro
       await signOut();
@@ -61,6 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         options: {
           data: {
             name: name.trim(),
+            cidade: cidade.trim(),
           },
           emailRedirectTo: window.location.origin,
         },
