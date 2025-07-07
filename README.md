@@ -63,6 +63,13 @@ As principais funcionalidades do app são:
 - **Expo Router:** Navegação moderna baseada em arquivos.
 - **Outras:** Hooks customizados, componentes otimizados, integração com câmera e galeria.
 
+## Roadmap (Funcionalidades Futuras)
+
+- **Chatbot integrado à prefeitura:** Canal direto para comunicação entre usuário e cidade, com respostas automáticas e encaminhamento de solicitações.
+- **Melhoria na marcação de consultas:** Processo mais intuitivo, com confirmação em tempo real e integração com a agenda das unidades de saúde.
+- **Realização de matrículas escolares pelo app:** Permitir que responsáveis realizem e acompanhem matrículas de alunos diretamente pelo aplicativo.
+- **Site da prefeitura integrado ao app:** Canal de comunicação unificado, permitindo acesso a notícias, serviços e solicitações tanto pelo site quanto pelo app.
+
 ## Como Rodar o Projeto
 1. Clone o repositório:
    ```bash
@@ -100,10 +107,3 @@ Dúvidas ou sugestões? Abra uma issue ou envie um e-mail para [jonathas.fosilva
 
 ## Licença
 Este projeto está sob a licença MIT. Veja o arquivo LICENSE para mais detalhes. 
-
-## Roadmap (Funcionalidades Futuras)
-
-- **Chatbot integrado à prefeitura:** Canal direto para comunicação entre usuário e cidade, com respostas automáticas e encaminhamento de solicitações.
-- **Melhoria na marcação de consultas:** Processo mais intuitivo, com confirmação em tempo real e integração com a agenda das unidades de saúde.
-- **Realização de matrículas escolares pelo app:** Permitir que responsáveis realizem e acompanhem matrículas de alunos diretamente pelo aplicativo.
-- **Site da prefeitura integrado ao app:** Canal de comunicação unificado, permitindo acesso a notícias, serviços e solicitações tanto pelo site quanto pelo app. 
