@@ -6,27 +6,39 @@ import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useState } from 'react';
 
 function InitialLayout() {
   const { session, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
   const { colors } = useTheme();
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
 
   useEffect(() => {
-    if (loading) return;
+    const timeout = setTimeout(() => {
+      // @ts-expect-error
+      router.replace('onboarding');
+    }, 100);
+    return () => clearTimeout(timeout);
+  }, []);
+
+  useEffect(() => {
+    if (!onboardingChecked || loading) return;
 
     const inAuthGroup = segments[0] === '(auth)';
+    const inOnboarding = segments[0] === 'onboarding';
 
-    if (!session && !inAuthGroup) {
+    if (!session && !inAuthGroup && !inOnboarding) {
       router.replace('/(auth)/login');
-    } else if (session && inAuthGroup) {
+    } else if (session && (inAuthGroup || inOnboarding)) {
       router.replace('/(tabs)');
     }
-  }, [session, segments, loading]);
+  }, [session, segments, loading, onboardingChecked]);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}> 
       <Stack
         screenOptions={{
           headerShown: false,
@@ -36,6 +48,7 @@ function InitialLayout() {
         }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
     </View>
