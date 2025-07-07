@@ -17,11 +17,23 @@ function InitialLayout() {
   const [onboardingChecked, setOnboardingChecked] = useState(false);
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      // @ts-expect-error
-      router.replace('onboarding');
-    }, 100);
-    return () => clearTimeout(timeout);
+    (async () => {
+      const justFinished = await AsyncStorage.getItem('onboardingJustFinished');
+      const countStr = await AsyncStorage.getItem('onboardingCount');
+      const alwaysShow = await AsyncStorage.getItem('onboardingAlwaysShow');
+      const count = countStr ? parseInt(countStr, 10) : 0;
+      console.log('onboardingCount', count, 'alwaysShow', alwaysShow, 'justFinished', justFinished);
+      if (justFinished === 'true') {
+        await AsyncStorage.removeItem('onboardingJustFinished');
+        setOnboardingChecked(true);
+        return;
+      }
+      if ((count < 1) || alwaysShow === 'true') {
+        router.replace('/onboarding');
+      } else {
+        setOnboardingChecked(true);
+      }
+    })();
   }, []);
 
   useEffect(() => {
