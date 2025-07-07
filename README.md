@@ -15,6 +15,12 @@ As principais funcionalidades do app são:
 
 ## Funcionalidades Detalhadas
 
+### Acessibilidade
+- Interface com alto contraste e fontes ajustáveis para facilitar a leitura por idosos e pessoas com baixa visão.
+- Botões grandes e áreas de toque ampliadas para facilitar o uso por pessoas com dificuldades motoras.
+- Fluxos simplificados e navegação intuitiva, reduzindo etapas e tornando o app mais amigável para todos os públicos.
+- Compatibilidade com leitores de tela e navegação por teclado.
+
 ### Sugestões
 - Envie sugestões de melhorias para a cidade diretamente pelo app.
 - Vote e comente em sugestões de outros cidadãos, promovendo participação ativa.
