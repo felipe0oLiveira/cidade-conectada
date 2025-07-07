@@ -172,7 +172,7 @@ export default function SuggestionDetailScreen() {
         setSuggestion(prev => prev ? { ...prev, user_vote: voteType, votes_count: newVotesCount } : null);
       }
       
-      // Comentário: Descomente o código abaixo quando executar a migração do banco
+      // Descomentar o código abaixo quando executar a migração do banco
       /*
       const existingVote = suggestion?.user_vote;
       
@@ -232,7 +232,7 @@ export default function SuggestionDetailScreen() {
       setComments(prev => [...prev, newComment]);
       setCommentText('');
       
-      // Comentário: Descomente o código abaixo quando executar a migração do banco
+      //  Descomentar o código abaixo quando executar a migração do banco
       /*
       const { error } = await supabase
         .from('suggestion_comments')
@@ -272,7 +272,7 @@ export default function SuggestionDetailScreen() {
       setEditingComment(null);
       setEditText('');
       
-      // Comentário: Descomente o código abaixo quando executar a migração do banco
+      //  Descomentar o código abaixo quando executar a migração do banco
       /*
       const { error } = await supabase
         .from('suggestion_comments')
@@ -306,7 +306,7 @@ export default function SuggestionDetailScreen() {
               // Simular exclusão de comentário com dados mock
               setComments(prev => prev.filter(comment => comment.id !== commentId));
               
-              // Comentário: Descomente o código abaixo quando executar a migração do banco
+              //  Descomentar o código abaixo quando executar a migração do banco
               /*
               const { error } = await supabase
                 .from('suggestion_comments')
