@@ -39,6 +39,10 @@ function InitialLayout() {
   useEffect(() => {
     if (!onboardingChecked || loading) return;
 
+    console.log('DEBUG session:', session);
+    console.log('DEBUG onboardingChecked:', onboardingChecked);
+    console.log('DEBUG segments:', segments);
+
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboarding = segments[0] === 'onboarding';
 

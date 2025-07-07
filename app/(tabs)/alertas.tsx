@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, TextInput, Button, FlatList, Modal, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, TextInput, Button, FlatList, Modal, ActivityIndicator, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
 import { Trash2, Lightbulb, Droplets, Truck } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -112,6 +112,13 @@ export default function AlertasScreen() {
         foto_url = publicUrl.publicUrl;
       }
     }
+    console.log('Enviando solicitação:', {
+      usuario_id: session.user.id,
+      tipo,
+      descricao,
+      localizacao,
+      foto_url,
+    });
     const { error } = await supabase.from('servicos_urbanos').insert([
       {
         usuario_id: session.user.id,
@@ -130,7 +137,8 @@ export default function AlertasScreen() {
       fetchSolicitacoes();
       alert('Solicitação enviada!');
     } else {
-      alert('Erro ao enviar solicitação.');
+      console.log('ERRO AO ENVIAR SOLICITAÇÃO:', error);
+      alert('Erro ao enviar solicitação: ' + (error?.message || JSON.stringify(error)));
     }
   }
 
@@ -208,36 +216,43 @@ export default function AlertasScreen() {
         transparent={true}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>  
-            <Text style={[styles.headerTitle, { color: colors.text, fontSize: fontSizes.lg }]}>Nova Solicitação</Text>
-            <Text style={{ marginBottom: 8 }}>Tipo: <Text style={{ fontWeight: 'bold' }}>{tipo}</Text></Text>
-            <Text>Descrição:</Text>
-            <TextInput
-              style={styles.input}
-              value={descricao}
-              onChangeText={setDescricao}
-              placeholder="Descreva o problema"
-              multiline
-            />
-            <Text>Localização (opcional):</Text>
-            <TextInput
-              style={styles.input}
-              value={localizacao}
-              onChangeText={setLocalizacao}
-              placeholder="Endereço ou ponto de referência"
-            />
-            {/* Botões para selecionar ou tirar foto */}
-            <View style={{ flexDirection: 'column', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <Button title="Selecionar Foto" onPress={pickImage} />
-              <Button title="Tirar Foto" onPress={takePhoto} />
-              {foto && <Image source={{ uri: foto.uri }} style={{ width: 120, height: 120, marginTop: 8, borderRadius: 8 }} />}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
+        >
+          <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }} keyboardShouldPersistTaps="handled">
+            <View style={styles.modalOverlay}>
+              <View style={[styles.modalContent, { backgroundColor: colors.card }]}>  
+                <Text style={[styles.headerTitle, { color: colors.text, fontSize: fontSizes.lg }]}>Nova Solicitação</Text>
+                <Text style={{ marginBottom: 8 }}>Tipo: <Text style={{ fontWeight: 'bold' }}>{tipo}</Text></Text>
+                <Text>Descrição:</Text>
+                <TextInput
+                  style={styles.input}
+                  value={descricao}
+                  onChangeText={setDescricao}
+                  placeholder="Descreva o problema"
+                  multiline
+                />
+                <Text>Localização (opcional):</Text>
+                <TextInput
+                  style={styles.input}
+                  value={localizacao}
+                  onChangeText={setLocalizacao}
+                  placeholder="Endereço ou ponto de referência"
+                />
+                {/* Botões para selecionar ou tirar foto */}
+                <View style={{ flexDirection: 'column', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <Button title="Selecionar Foto" onPress={pickImage} />
+                  <Button title="Tirar Foto" onPress={takePhoto} />
+                  {foto && <Image source={{ uri: foto.uri }} style={{ width: 120, height: 120, marginTop: 8, borderRadius: 8 }} />}
+                </View>
+                {/* Botão de envio */}
+                <Button title={enviando ? 'Enviando...' : 'Enviar Solicitação'} onPress={handleSubmit} disabled={enviando} />
+                <Button title="Cancelar" onPress={() => setModalVisible(false)} color="#888" />
+              </View>
             </View>
-            {/* Botão de envio */}
-            <Button title={enviando ? 'Enviando...' : 'Enviar Solicitação'} onPress={handleSubmit} disabled={enviando} />
-            <Button title="Cancelar" onPress={() => setModalVisible(false)} color="#888" />
-          </View>
-        </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
